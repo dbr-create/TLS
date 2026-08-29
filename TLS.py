@@ -1,4 +1,5 @@
 import socket
+import os
 
 class TLS_client(socket.socket):
 
@@ -7,7 +8,17 @@ class TLS_client(socket.socket):
         self.protected_socket = raw_tcp_socket
 
     def handshake_client(self):
-        send_data(self.protected_socket,b"hello")
+
+        #client nonce
+        nonce = os.urandom(16)
+
+        #client sending client hello - nonce
+        send_data(self.protected_socket,nonce)
+
+        server_hello = recieve_data(self.protected_socket)
+
+        print(server_hello)
+
 
 class TLS_server(socket.socket):
 
@@ -17,8 +28,19 @@ class TLS_server(socket.socket):
 
     def handshake_server(self):
 
-        payload = recieve_data(self.protected_socket)
-        print(payload)
+        #server nonce
+        nonce = os.urandom(16)
+
+        #server recieving client hello
+        client_hello = recieve_data(self.protected_socket)
+
+        print(client_hello)
+
+        #server sending server hello - nonce
+        server_hello = send_data(self.protected_socket,nonce)
+
+
+        
 
 #functions to handle the fact that TCP transmits as a stream (i.e. headers needed to seperate different messages - Clienthello,DH exchange etc.)
 def send_data(socket,payload):
