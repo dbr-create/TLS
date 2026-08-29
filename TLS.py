@@ -17,10 +17,7 @@ class TLS_server(socket.socket):
 
     def handshake_server(self):
 
-        self.protected_socket.listen()
-        conn, addr = self.protected_socket.accept()
-
-        payload = recieve_data(conn)
+        payload = recieve_data(self.protected_socket)
         print(payload)
 
 #functions to handle the fact that TCP transmits as a stream (i.e. headers needed to seperate different messages - Clienthello,DH exchange etc.)
