@@ -1,3 +1,5 @@
+#TLS classes for client and server
+
 import socket
 import os
 
@@ -19,7 +21,6 @@ class TLS_client(socket.socket):
 
         print(server_hello)
 
-
 class TLS_server(socket.socket):
 
     def __init__(self,raw_tcp_socket):
@@ -38,9 +39,6 @@ class TLS_server(socket.socket):
 
         #server sending server hello - nonce
         server_hello = send_data(self.protected_socket,nonce)
-
-
-        
 
 #functions to handle the fact that TCP transmits as a stream (i.e. headers needed to seperate different messages - Clienthello,DH exchange etc.)
 def send_data(socket,payload):

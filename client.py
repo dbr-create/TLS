@@ -1,3 +1,5 @@
+#code used for starting the client
+
 import socket
 from TLS import TLS_client
 

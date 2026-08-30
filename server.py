@@ -1,3 +1,5 @@
+#code used for starting the server
+
 import socket
 from TLS import TLS_server
 
