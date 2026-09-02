@@ -1,7 +1,8 @@
 #TLS classes for client and server
 
 import socket
-import os
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, ParameterFormat, load_pem_public_key, load_pem_parameters
+from EDH import generate_parameters, generate_key_pair, establish_shared_key
 
 class TLS_client(socket.socket):
 
@@ -11,15 +12,25 @@ class TLS_client(socket.socket):
 
     def handshake_client(self):
 
-        #client nonce
-        nonce = os.urandom(16)
+        #client sending client hello - to be replaced with cipher suite at a later date
+        send_data(self.protected_socket,b'hello')
 
-        #client sending client hello - nonce
-        send_data(self.protected_socket,nonce)
+        #server hello
+        encoded_parameters = recieve_data(self.protected_socket)
 
-        server_hello = recieve_data(self.protected_socket)
+        parameters = load_pem_parameters(encoded_parameters)
 
-        print(server_hello)
+        private_key, public_key = generate_key_pair(parameters)
+
+        encoded_public_key = public_key.public_bytes(Encoding.PEM,PublicFormat.SubjectPublicKeyInfo)
+
+        send_data(self.protected_socket,encoded_public_key)
+
+        peer_public_key = load_pem_public_key(recieve_data(self.protected_socket))
+
+        shared_key = establish_shared_key(private_key,peer_public_key)
+
+        print(shared_key)
 
 class TLS_server(socket.socket):
 
@@ -29,16 +40,29 @@ class TLS_server(socket.socket):
 
     def handshake_server(self):
 
-        #server nonce
-        nonce = os.urandom(16)
-
         #server recieving client hello
         client_hello = recieve_data(self.protected_socket)
 
         print(client_hello)
 
-        #server sending server hello - nonce
-        server_hello = send_data(self.protected_socket,nonce)
+        parameters = generate_parameters()
+
+        encoded_parameters = parameters.parameter_bytes(Encoding.PEM,ParameterFormat.PKCS3)
+
+        send_data(self.protected_socket,encoded_parameters)
+
+        private_key, public_key = generate_key_pair(parameters)
+
+        encoded_public_key = public_key.public_bytes(Encoding.PEM,PublicFormat.SubjectPublicKeyInfo)
+
+        #server sending server hello - EDH public key
+        send_data(self.protected_socket,encoded_public_key)
+
+        peer_public_key = load_pem_public_key(recieve_data(self.protected_socket))
+
+        shared_key = establish_shared_key(private_key,peer_public_key)
+
+        print(shared_key)
 
 #functions to handle the fact that TCP transmits as a stream (i.e. headers needed to seperate different messages - Clienthello,DH exchange etc.)
 def send_data(socket,payload):
@@ -81,5 +105,8 @@ def recieve_data(socket):
 
     return payload
 
+#used https://www.ibm.com/docs/en/sdk-java-technology/8?topic=handshake-tls-12-protocol for pseudocode on the steps of TLS (1.2)
+#used https://cryptography.io/en/3.4.2/hazmat/primitives/asymmetric/serialization.html for information on how to convert a key/paramaters objects into byte format (specifically went with PEM)
+#used https://stackoverflow.com/questions/77288976/how-to-export-a-private-key-public-key-into-bytes-with-python-cryptography-mod for an example of the byte conversion used in actual code
 
     

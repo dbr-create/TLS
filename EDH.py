@@ -38,21 +38,7 @@ def establish_shared_key(private_key,peer_public_key):
         salt=None,
         info=b'handshake data',
     ).derive(shared_key) #turns the number in shared_key into a standared length 32 byte hash via SHA
-    #
 
     return derived_key
-
-#tests
-parameters = generate_parameters()
-
-server_private_key, server_public_key = generate_key_pair(parameters)
-client_private_key, client_public_key = generate_key_pair(parameters)
-
-server_derived_key = establish_shared_key(server_private_key,client_public_key)
-client_derived_key = establish_shared_key(client_private_key,server_public_key)
-
-print(server_derived_key)
-print(client_derived_key)
-print(server_derived_key == client_derived_key)
 
 #https://cryptography.io/en/latest/hazmat/primitives/asymmetric/dh/ -used this for help with cryptography library for EDH
