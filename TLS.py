@@ -13,6 +13,7 @@ class TLS_client(socket.socket):
     def handshake_client(self):
 
         #client sending client hello - to be replaced with cipher suite at a later date
+        #No negotiation of TLS version (assumed 1.2 using EDH)
         send_data(self.protected_socket,b'hello')
 
         #server hello
